@@ -9,7 +9,7 @@ interface CrosshairProps {
 export default function Crosshair({ isVisible, mousePosition, isClicked = false }: CrosshairProps) {
   const [showCoords, setShowCoords] = useState(false)
   const [coords, setCoords] = useState({ x: 0, y: 0 })
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (isClicked) {
