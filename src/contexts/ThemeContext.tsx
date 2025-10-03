@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 // Definizione dei temi disponibili
-export type ThemeType = 'default' | 'berlin' | 'acid' | 'technoroom' | 'furry'
+export type ThemeType = 'default' | 'berlin' | 'acid' | 'coastal' | 'furry'
 
 // Definizione della palette di colori per ogni tema
 export interface ThemeColors {
@@ -35,7 +35,7 @@ export const themePalettes: Record<ThemeType, ThemeColors> = {
     accent: '#ff00ff',
     subtitle: '#00ffff'
   },
-  technoroom: {
+  coastal: {
     bg: '#2c2c2c',
     bgGradient: '#404040',
     text: '#e0e0e0',
@@ -93,15 +93,52 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     root.style.setProperty('--alex-subtitle', colors.subtitle)
   }
 
-  // Carica il tema salvato al mount
+  // Funzione per rilevare il dark mode del sistema
+  const detectSystemTheme = (): ThemeType => {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'berlin'
+    }
+    return 'default'
+  }
+
+  // Carica il tema salvato al mount o rileva il dark mode
   useEffect(() => {
     const savedTheme = localStorage.getItem('alex-akashi-theme') as ThemeType
+    
     if (savedTheme && themePalettes[savedTheme]) {
+      // Usa il tema salvato
       setCurrentTheme(savedTheme)
       applyThemeColors(themePalettes[savedTheme])
     } else {
-      // Applica il tema di default
-      applyThemeColors(themePalettes.default)
+      // Rileva il tema del sistema
+      const systemTheme = detectSystemTheme()
+      setCurrentTheme(systemTheme)
+      applyThemeColors(themePalettes[systemTheme])
+      
+      // Salva il tema rilevato per la prossima volta
+      localStorage.setItem('alex-akashi-theme', systemTheme)
+    }
+  }, [])
+
+  // Listener per i cambiamenti del dark mode del sistema
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      // Solo se non c'è un tema salvato dall'utente, segui il sistema
+      const savedTheme = localStorage.getItem('alex-akashi-theme')
+      if (!savedTheme) {
+        const newTheme = e.matches ? 'berlin' : 'default'
+        setCurrentTheme(newTheme)
+        applyThemeColors(themePalettes[newTheme])
+        localStorage.setItem('alex-akashi-theme', newTheme)
+      }
+    }
+
+    mediaQuery.addEventListener('change', handleSystemThemeChange)
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange)
     }
   }, [])
 

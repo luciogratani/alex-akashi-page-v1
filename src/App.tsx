@@ -3,15 +3,11 @@ import Noise from './components/Noise'
 import Crosshair from './components/Crosshair'
 import AudioPlayer from './components/AudioPlayer'
 import ScrollingText from './components/ScrollingText'
-import Playlist from './components/Playlist'
-import Contacts from './components/Contacts'
-import About from './components/About'
-import Theme from './components/Theme'
+import Menu from './components/Menu'
 import Bio from './components/Bio'
 import ControlsGuide from './components/ControlsGuide'
 import LoadingScreen from './components/LoadingScreen'
-import SupabaseTest from './components/SupabaseTest'
-import CacheStats from './components/CacheStats'
+import DebugPanel from './components/DebugPanel'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { useState, useRef, useEffect } from 'react'
 
@@ -30,6 +26,7 @@ function App() {
   const [currentTrackId, setCurrentTrackId] = useState(1)
   const [currentTrackMetadata, setCurrentTrackMetadata] = useState<any>(null)
   const [isAboutOpen, setIsAboutOpen] = useState(false)
+  const [openMenuComponent, setOpenMenuComponent] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const togglePlayPauseRef = useRef<(() => void) | null>(null)
   
@@ -101,6 +98,11 @@ function App() {
     // TODO: Load new track file when implemented
     console.log(`Selected track ${trackId}`)
   }
+
+  // Handle menu component open/close
+  const handleMenuComponentChange = (componentName: string | null) => {
+    setOpenMenuComponent(componentName)
+  }
   
   return (
     <ThemeProvider>
@@ -142,20 +144,14 @@ function App() {
             onMetadataChange={setCurrentTrackMetadata}
           />
 
-          {/* Playlist - Top Right */}
-          <Playlist 
+          {/* Menu - Top Right */}
+          <Menu 
             currentTrackId={currentTrackId}
             onTrackSelect={handleTrackSelect}
+            onAboutOpenChange={setIsAboutOpen}
+            openMenuComponent={openMenuComponent}
+            onMenuComponentChange={handleMenuComponentChange}
           />
-
-          {/* Contacts - Top Right, next to Playlist */}
-          <Contacts />
-
-          {/* Theme - Top Right, between Contacts and About */}
-          <Theme />
-
-          {/* About - Top Right, between Theme and Playlist */}
-          <About onOpenChange={setIsAboutOpen} />
 
           {/* Controls Guide - Bottom Left */}
           <ControlsGuide />
@@ -171,11 +167,8 @@ function App() {
           </div>
         </div>
         
-        {/* Supabase Test Component - Temporary */}
-        <SupabaseTest />
-        
-        {/* Cache Stats Component - Temporary */}
-        <CacheStats />
+        {/* Debug Panel - Click button to open */}
+        <DebugPanel />
         
         {/* Vertical Separator */}
         <div className={`w-px h-full bg-alex-subtitle transition-opacity duration-500 ${isFullscreen ? 'opacity-0' : 'opacity-100'}`}></div>

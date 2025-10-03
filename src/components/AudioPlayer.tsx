@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Circle } from 'lucide-react'
 import { audioService, type TrackMetadata } from '../lib/audioService'
+import { analyticsService } from '../lib/analyticsService'
 
 interface AudioPlayerProps {
   onKick?: (active: boolean) => void
@@ -62,10 +63,17 @@ export default function AudioPlayer({ onKick, audioRef: externalAudioRef, onPlay
             // Preload next track for seamless playback
             audioService.preloadNextTrack(track.id)
             
+            // Aggiungi listener per fine traccia
+            audioRef.current.addEventListener('ended', () => {
+              analyticsService.trackTrackEnd()
+            })
+            
             // Auto-play when changing tracks
             audioRef.current.play()
               .then(() => {
                 setIsPlaying(true)
+                // Traccia il cambio traccia (pausa automatica + nuovo play)
+                analyticsService.trackTrackChange(currentTrackId)
                 if (onPlayingChange) {
                   onPlayingChange(true)
                 }
@@ -163,8 +171,12 @@ export default function AudioPlayer({ onKick, audioRef: externalAudioRef, onPlay
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause()
+        // Traccia la pausa
+        analyticsService.trackPause()
       } else {
         audioRef.current.play()
+        // Traccia l'inizio della riproduzione
+        analyticsService.trackPlay(currentTrackId)
       }
       const newPlayingState = !isPlaying
       setIsPlaying(newPlayingState)

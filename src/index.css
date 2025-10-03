@@ -106,4 +106,12 @@
   .border-alex-accent {
     border-color: var(--alex-accent);
   }
+  
+  .bg-alex-accent {
+    background-color: var(--alex-accent);
+  }
+  
+  .text-alex-bg {
+    color: var(--alex-bg);
+  }
 }

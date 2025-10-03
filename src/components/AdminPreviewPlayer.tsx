@@ -99,19 +99,29 @@ export default function AdminPreviewPlayer({ track, onClose }: AdminPreviewPlaye
 
   const loadKickEvents = async () => {
     try {
+      // Get kicks directly from tracks table
       const { data, error } = await supabase
-        .from('track_events')
-        .select('*')
-        .eq('track_id', track.id)
-        .eq('event_type', 'kick')
-        .order('timestamp')
+        .from('tracks')
+        .select('kicks')
+        .eq('id', track.id)
+        .single()
 
       if (error) {
         console.error('Error loading kick events:', error)
         return
       }
 
-      setKickEvents(data || [])
+      // Convert kicks array to event objects for compatibility
+      const kicks = data?.kicks || []
+      const kickEvents = kicks.map((timestamp: number) => ({
+        id: Math.random(), // Temporary ID
+        track_id: track.id,
+        event_type: 'kick',
+        timestamp: timestamp,
+        created_at: new Date().toISOString()
+      }))
+
+      setKickEvents(kickEvents)
     } catch (err) {
       console.error('Error loading kick events:', err)
     }

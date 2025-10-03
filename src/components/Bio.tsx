@@ -77,27 +77,33 @@ export default function Bio() {
               >
                 {section.content}
                 
-                {/* Project Logos - Only show for section 4 */}
+                {/* Instagram Links - Only show for section 4 */}
                 {section.id === 4 && openSection === section.id && (
                   <div className="mt-3 flex flex-col gap-2">
-                    {/* Technoroom Logo */}
+                    {/* Technoroom Instagram Link */}
                     <div className="flex items-center gap-2">
-                      <img 
-                        src="/images/Technoroom Textmark.svg" 
-                        alt="Technoroom Logo"
-                        className="h-4 w-auto opacity-80"
-                      />
-                      <span className="text-alex-accent opacity-70">TECHNOROOM</span>
+                      <a 
+                        href="https://www.instagram.com/technoroomevents/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 hover:text-alex-accent transition-colors duration-200"
+                      >
+                        <span className="text-alex-accent opacity-70">@</span>
+                        <span className="text-alex-accent opacity-70">technoroomevents</span>
+                      </a>
                     </div>
                     
-                    {/* Coastal Drift Logo */}
+                    {/* Coastal Drift Instagram Link */}
                     <div className="flex items-center gap-2">
-                      <img 
-                        src="/images/Coastal-Drift-Textmark.svg" 
-                        alt="Coastal Drift Logo"
-                        className="h-4 w-auto opacity-80"
-                      />
-                      <span className="text-alex-accent opacity-70">COASTAL DRIFT</span>
+                      <a 
+                        href="https://www.instagram.com/_coastal_drift_/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 hover:text-alex-accent transition-colors duration-200"
+                      >
+                        <span className="text-alex-accent opacity-70">@</span>
+                        <span className="text-alex-accent opacity-70">_coastal_drift_</span>
+                      </a>
                     </div>
                   </div>
                 )}

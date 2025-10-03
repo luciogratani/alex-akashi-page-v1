@@ -5,10 +5,12 @@ import { audioService, type CompleteTrack } from '../lib/audioService'
 interface PlaylistProps {
   currentTrackId: number
   onTrackSelect: (trackId: number) => void
+  openMenuComponent: string | null
+  onMenuComponentChange: (componentName: string | null) => void
 }
 
 
-export default function Playlist({ currentTrackId, onTrackSelect }: PlaylistProps) {
+export default function Playlist({ currentTrackId, onTrackSelect, openMenuComponent, onMenuComponentChange }: PlaylistProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [tracks, setTracks] = useState<CompleteTrack[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,14 +41,22 @@ export default function Playlist({ currentTrackId, onTrackSelect }: PlaylistProp
     loadTracks()
   }, [])
 
+  // Chiudi Playlist se viene aperto un altro componente del menu
+  useEffect(() => {
+    if (isOpen && openMenuComponent !== 'playlist' && openMenuComponent !== null) {
+      setIsOpen(false)
+    }
+  }, [openMenuComponent, isOpen])
+
 
   return (
-    <div className="absolute top-8 right-8 z-50 flex flex-col items-end">
+    <div className="relative flex flex-col items-end">
       {/* Playlist Header - Toggle Button */}
       <button
         onClick={() => {
           
           setIsOpen(!isOpen)
+          onMenuComponentChange(isOpen ? null : 'playlist')
         }}
         
         className="relative flex items-center gap-2 px-2 py-1 transition-all duration-200 group bg-transparent border-none"
@@ -73,7 +83,7 @@ export default function Playlist({ currentTrackId, onTrackSelect }: PlaylistProp
 
       {/* Dropdown - Track List */}
       <div 
-        className={`flex flex-col items-end gap-2 mt-2 transition-all duration-300 overflow-hidden ${
+        className={`absolute top-full right-0 flex flex-col items-end gap-2 mt-2 transition-all duration-300 overflow-hidden ${
           isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >

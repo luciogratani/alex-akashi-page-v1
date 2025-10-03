@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, ChevronDown, ChevronUp } from 'lucide-react'
+import { analyticsService } from '../lib/analyticsService'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface AboutSlide {
   id: number
@@ -11,7 +13,7 @@ const aboutSlides: AboutSlide[] = [
   {
     id: 1,
     title: 'DEVELOPMENT/DESIGN',
-    content: 'This website was created by Lucio Gratani, creative WebDev. Minimalist aesthetic inspired by Alex and electronic music culture. Follow me on Instagram for more spam content and collaborations.'
+    content: 'This website was created by Lucio Gratani, creative WebDev. Bold and minimalist aesthetic inspired by Don’t Stop by Alex Akashi. Follow me on Instagram for more spam content and collaborations.'
   },
   {
     id: 2,
@@ -21,7 +23,7 @@ const aboutSlides: AboutSlide[] = [
   {
     id: 3,
     title: 'STATISTICS',
-    content: '┌─────────────────────┬─────────┐\n│ METRIC              │ VALUE   │\n├─────────────────────┼─────────┤\n│ TOTAL PLAYS         │ 0       │\n│ UNIQUE VISITORS     │ 0       │\n│ LISTENING TIME      │ 0 min   │\n│ AVG SESSION         │ 0 min   │\n└─────────────────────┴─────────┘\n\n● LIVE TRACKING ACTIVE'
+    content: 'TOTAL PLAYS: 0\nUNIQUE VISITORS: 0\nLISTENING TIME: 0 min\n\nTOP TRACKS:\nNo data available'
   },
   {
     id: 4,
@@ -32,15 +34,59 @@ const aboutSlides: AboutSlide[] = [
 
 interface AboutProps {
   onOpenChange?: (isOpen: boolean) => void
+  openMenuComponent: string | null
+  onMenuComponentChange: (componentName: string | null) => void
 }
 
-export default function About({ onOpenChange }: AboutProps) {
+export default function About({ onOpenChange, openMenuComponent, onMenuComponentChange }: AboutProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isTyping, setIsTyping] = useState(false)
   const [typedTitle, setTypedTitle] = useState('')
   const [typedContent, setTypedContent] = useState('')
   const [showCursor, setShowCursor] = useState(true)
+  const [statistics, setStatistics] = useState({
+    totalPlays: 0,
+    uniqueVisitors: 0,
+    totalListeningTime: 0,
+    topTracks: [] as Array<{ track_id: number; play_count: number; track_title: string; track_artist: string }>
+  })
+  const { themeColors } = useTheme()
+
+  // Genera il cursore crosshair con il colore del tema
+  const getCrosshairCursor = () => {
+    const svg = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 0v16M8 0v16M0 8h16M0 8h16" stroke="${themeColors.accent}" stroke-width="1"/>
+    </svg>`
+    return `url("data:image/svg+xml;base64,${btoa(svg)}") 8 8, auto`
+  }
+
+  const loadStatistics = async () => {
+    try {
+      const stats = await analyticsService.getStatistics()
+      setStatistics(stats)
+    } catch (error) {
+      console.error('Error loading statistics:', error)
+    }
+  }
+
+  // Carica le statistiche all'apertura di About
+  useEffect(() => {
+    if (isOpen) {
+      loadStatistics()
+    }
+  }, [isOpen])
+
+  // Chiudi About se viene aperto un altro componente del menu
+  useEffect(() => {
+    if (isOpen && openMenuComponent !== 'about' && openMenuComponent !== null) {
+      setIsOpen(false)
+      setIsTyping(false)
+      setTypedTitle('')
+      setTypedContent('')
+      if (onOpenChange) onOpenChange(false)
+    }
+  }, [openMenuComponent, isOpen, onOpenChange])
 
   const handleAboutClick = () => {
     
@@ -50,6 +96,7 @@ export default function About({ onOpenChange }: AboutProps) {
     setTypedTitle('')
     setTypedContent('')
     if (onOpenChange) onOpenChange(true)
+    onMenuComponentChange('about')
   }
 
   const handleCloseClick = () => {
@@ -59,6 +106,7 @@ export default function About({ onOpenChange }: AboutProps) {
     setTypedTitle('')
     setTypedContent('')
     if (onOpenChange) onOpenChange(false)
+    onMenuComponentChange(null)
   }
 
   const handleNextSlide = () => {
@@ -77,6 +125,24 @@ export default function About({ onOpenChange }: AboutProps) {
     setTypedContent('')
   }
 
+  // Genera il contenuto dinamico per le statistiche
+  const getStatisticsContent = () => {
+    let content = `TOTAL PLAYS: ${statistics.totalPlays}\nUNIQUE VISITORS: ${statistics.uniqueVisitors}\nLISTENING TIME: ${Math.floor(statistics.totalListeningTime / 60)} min`
+    
+    // Top tracks
+    if (statistics.topTracks.length > 0) {
+      content += `\n\nTOP TRACKS:\n`
+      statistics.topTracks.forEach((track, index) => {
+        content += `${index + 1}. ${track.track_title} by ${track.track_artist} - ${track.play_count} plays\n`
+      })
+    } else {
+      content += `\n\nTOP TRACKS:\nNo data available`
+    }
+    
+    return content
+  }
+
+  // Usa il contenuto originale per il typing effect, poi aggiorna solo quando necessario
   const currentSlideData = aboutSlides[currentSlide]
 
   // Terminal typing effect
@@ -97,8 +163,11 @@ export default function About({ onOpenChange }: AboutProps) {
         // Start typing content after title is done
         setTimeout(() => {
           const typeContent = () => {
-            if (contentIndex < currentSlideData.content.length) {
-              setTypedContent(currentSlideData.content.slice(0, contentIndex + 1))
+            // Per la slide STATISTICS, usa il contenuto dinamico dopo il typing
+            const contentToType = currentSlide === 2 ? getStatisticsContent() : currentSlideData.content
+            
+            if (contentIndex < contentToType.length) {
+              setTypedContent(contentToType.slice(0, contentIndex + 1))
               contentIndex++
               contentTimeout = setTimeout(typeContent, 20) // Faster for content
             } else {
@@ -116,7 +185,7 @@ export default function About({ onOpenChange }: AboutProps) {
       clearTimeout(titleTimeout)
       clearTimeout(contentTimeout)
     }
-  }, [currentSlide, isTyping, currentSlideData])
+  }, [currentSlide, isTyping, currentSlideData, statistics]) // Aggiungiamo statistics come dipendenza
 
   // Cursor blinking effect
   useEffect(() => {
@@ -129,7 +198,7 @@ export default function About({ onOpenChange }: AboutProps) {
 
   return (
     <>
-      <div className="absolute top-8 right-56 z-50 flex flex-col items-end">
+      <div className="relative flex flex-col items-end">
         {/* About Button */}
         <button
           onClick={handleAboutClick}
@@ -149,13 +218,13 @@ export default function About({ onOpenChange }: AboutProps) {
       {/* About Modal - Treated as a "column" like Crosshair */}
       {isOpen && (
         <div 
-          className="absolute inset-0 z-[100] pointer-events-auto bg-black bg-opacity-5"
+          className="fixed top-0 left-0 w-2/3 h-full z-[100] pointer-events-auto bg-black bg-opacity-10"
           onClick={handleCloseClick}
           style={{ 
-            cursor: 'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMHYxNk04IDB2MTZNMCA4aDE2TTAgOGgxNiIgc3Ryb2tlPSIjQ0EyRDJFIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+Cg==") 8 8, auto'
+            cursor: getCrosshairCursor()
           }}
         >
-          {/* Modal Content - Same aspect ratio as column 1 */}
+          {/* Modal Content - Centered in Column 1 */}
           <div 
             className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[600px] bg-alex-bg border-2 border-alex-accent"
             onClick={(e) => e.stopPropagation()}

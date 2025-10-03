@@ -29,9 +29,7 @@ export default function CacheStats() {
   }, [])
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-black/80 text-white p-3 rounded-lg font-mono text-xs">
-      <div className="mb-2 font-bold text-alex-accent">CACHE STATS</div>
-      
+    <div className="text-white font-mono text-xs">
       <div className="space-y-1">
         <div className="flex justify-between gap-4">
           <span>Metadata Cache:</span>

@@ -3,10 +3,12 @@ import { useGLTF, Points, PointMaterial, OrbitControls } from '@react-three/drei
 import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { Gamepad2, MousePointerClick, Mouse, Maximize2 } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 function Particles({ isHovered }: { isHovered: boolean }) {
   const pointsRef = useRef<THREE.Points>(null)
   const particleCount = 1000
+  const { themeColors } = useTheme()
   
   // Generate random positions for particles
   const positions = useMemo(() => {
@@ -37,7 +39,7 @@ function Particles({ isHovered }: { isHovered: boolean }) {
   return (
     <Points ref={pointsRef} positions={positions}>
       <PointMaterial
-        color="#CA2D2E"
+        color={themeColors.accent}
         size={0.025}
         transparent
         opacity={1}
@@ -51,6 +53,7 @@ function Model({ isHovered, mousePosition, kickActive, isLoaded, isPlaying }: { 
   // DRACO compressed models
   const { scene: aaScene } = useGLTF('/models/AA-draco.glb')
   const { scene: thornScene } = useGLTF('/models/THORN-draco.glb')
+  const { themeColors } = useTheme()
   
   const meshRef = useRef<THREE.Group>(null)
   const morphValue = useRef(0)
@@ -70,7 +73,7 @@ function Model({ isHovered, mousePosition, kickActive, isLoaded, isPlaying }: { 
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh
         mesh.material = new THREE.MeshBasicMaterial({
-          color: '#CA2D2E',
+          color: themeColors.accent,
           wireframe: true,
           transparent: true
         })
@@ -89,7 +92,7 @@ function Model({ isHovered, mousePosition, kickActive, isLoaded, isPlaying }: { 
       }
     })
     return clonedScene
-  }, [aaScene])
+  }, [aaScene, themeColors.accent])
   
   // Clone and prepare THORN scene
   const wireframeThornScene = useMemo(() => {
@@ -98,7 +101,7 @@ function Model({ isHovered, mousePosition, kickActive, isLoaded, isPlaying }: { 
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh
         mesh.material = new THREE.MeshBasicMaterial({
-          color: '#CA2D2E',
+          color: themeColors.accent,
           wireframe: true,
           transparent: true
         })
@@ -117,7 +120,7 @@ function Model({ isHovered, mousePosition, kickActive, isLoaded, isPlaying }: { 
       }
     })
     return clonedScene
-  }, [thornScene])
+  }, [thornScene, themeColors.accent])
   
   // Auto rotation and dissolve transition
   useFrame((_state, delta) => {
@@ -286,6 +289,7 @@ export default function ThreeScene({
   isPlaying = false
 }: ThreeSceneProps) {
   const [orbitEnabled, setOrbitEnabled] = useState(false)
+  const { themeColors } = useTheme()
 
   // Auto-enable orbit controls when entering fullscreen
   useEffect(() => {
@@ -323,7 +327,7 @@ export default function ThreeScene({
       >
         <Maximize2
           size={28}
-          color="#CA2D2E"
+          color={themeColors.accent}
           strokeWidth={2}
           className="transition-all duration-200"
           style={{
@@ -363,7 +367,7 @@ export default function ThreeScene({
         >
           <Gamepad2
             size={32}
-            color="#CA2D2E"
+            color={themeColors.accent}
             strokeWidth={2}
             className="transition-all duration-200"
             style={{

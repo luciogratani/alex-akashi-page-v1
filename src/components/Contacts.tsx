@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 
 interface Contact {
@@ -17,8 +17,20 @@ const contacts: Contact[] = [
   { id: 6, name: 'Bandcamp', url: 'https://alexakashi.bandcamp.com', type: 'distributor' },
 ]
 
-export default function Contacts() {
+interface ContactsProps {
+  openMenuComponent: string | null
+  onMenuComponentChange: (componentName: string | null) => void
+}
+
+export default function Contacts({ openMenuComponent, onMenuComponentChange }: ContactsProps) {
   const [isOpen, setIsOpen] = useState(false)
+
+  // Chiudi Contacts se viene aperto un altro componente del menu
+  useEffect(() => {
+    if (isOpen && openMenuComponent !== 'contacts' && openMenuComponent !== null) {
+      setIsOpen(false)
+    }
+  }, [openMenuComponent, isOpen])
 
   const handleContactClick = (contact: Contact) => {
     
@@ -26,12 +38,13 @@ export default function Contacts() {
   }
 
   return (
-    <div className="absolute top-8 right-24 z-50 flex flex-col items-end">
+    <div className="relative flex flex-col items-end">
       {/* Contacts Header - Toggle Button */}
       <button
         onClick={() => {
           
           setIsOpen(!isOpen)
+          onMenuComponentChange(isOpen ? null : 'contacts')
         }}
         
         className="relative flex items-center gap-2 px-2 py-1 transition-all duration-200 group bg-transparent border-none"
@@ -58,7 +71,7 @@ export default function Contacts() {
 
       {/* Dropdown - Contact List */}
       <div 
-        className={`flex flex-col items-end gap-2 mt-2 transition-all duration-300 overflow-hidden ${
+        className={`absolute top-full right-0 flex flex-col items-end gap-2 mt-2 transition-all duration-300 overflow-hidden ${
           isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >

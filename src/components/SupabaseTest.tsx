@@ -32,13 +32,13 @@ export default function SupabaseTest() {
   }, [])
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 bg-black/80 text-white p-4 rounded-lg font-mono text-xs">
+    <div className="text-white font-mono text-xs">
       <div className="flex items-center gap-2 mb-2">
         <div className={`w-2 h-2 rounded-full ${
           connectionStatus === 'testing' ? 'bg-yellow-400 animate-pulse' :
           connectionStatus === 'success' ? 'bg-green-400' : 'bg-red-400'
         }`} />
-        <span>Supabase Status:</span>
+        <span>Status:</span>
         <span className={
           connectionStatus === 'success' ? 'text-green-400' : 
           connectionStatus === 'error' ? 'text-red-400' : 'text-yellow-400'

@@ -51,6 +51,7 @@ export interface Track {
   duration: number
   release_date?: string
   audio_file_path?: string
+  kicks: number[]
   is_active: boolean
   order_position: number
   created_at: string
@@ -71,5 +72,17 @@ export interface TrackTimeline {
   section_type: 'intro' | 'bridge' | 'outro'
   start_time: number
   end_time: number
+  created_at: string
+}
+
+export interface Analytics {
+  id: string
+  session_id: string
+  event_type: 'play' | 'pause' | 'session_start' | 'listening_time'
+  track_id?: number
+  timestamp: string
+  duration_seconds?: number
+  user_agent?: string
+  ip_address?: string
   created_at: string
 }

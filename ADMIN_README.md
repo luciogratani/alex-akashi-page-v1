@@ -61,34 +61,16 @@ CREATE TABLE tracks (
   duration INTEGER NOT NULL,
   release_date DATE,
   audio_file_path TEXT,
+  kicks DECIMAL(10,6)[] DEFAULT '{}',
+  order_position INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Tabella track_events
-CREATE TABLE track_events (
-  id SERIAL PRIMARY KEY,
-  track_id INTEGER REFERENCES tracks(id) ON DELETE CASCADE,
-  event_type VARCHAR(20) NOT NULL CHECK (event_type IN ('kick', 'snare', 'hihat')),
-  timestamp DECIMAL(10,6) NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Tabella track_timeline
-CREATE TABLE track_timeline (
-  id SERIAL PRIMARY KEY,
-  track_id INTEGER REFERENCES tracks(id) ON DELETE CASCADE,
-  section_type VARCHAR(20) NOT NULL CHECK (section_type IN ('intro', 'bridge', 'outro')),
-  start_time DECIMAL(10,6) NOT NULL,
-  end_time DECIMAL(10,6) NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
 
 -- Disabilita RLS per semplicità
 ALTER TABLE tracks DISABLE ROW LEVEL SECURITY;
-ALTER TABLE track_events DISABLE ROW LEVEL SECURITY;
-ALTER TABLE track_timeline DISABLE ROW LEVEL SECURITY;
 ```
 
 ### 3. Storage Supabase

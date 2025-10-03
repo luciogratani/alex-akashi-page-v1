@@ -15,6 +15,7 @@ export interface TrackMetadata {
   duration: number
   releaseDate?: string
   audioFilePath?: string
+  kicks: number[]
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -51,7 +52,6 @@ class AudioService {
   // Audio preloading cache
   private audioPreloadCache: Map<number, string> = new Map()
   private preloadedTracks: Set<number> = new Set()
-  private readonly PRELOAD_DURATION = 30 * 1000 // 30 seconds
 
   static getInstance(): AudioService {
     if (!AudioService.instance) {
@@ -87,53 +87,29 @@ class AudioService {
         return []
       }
 
-      // Fetch events and timeline for all tracks
+      // Fetch timeline for all tracks (kicks now come from tracks table)
       const trackIds = tracks.map(track => track.id)
       
-      const [eventsResult, timelineResult] = await Promise.all([
-        supabase
-          .from('track_events')
-          .select('*')
-          .in('track_id', trackIds),
-        supabase
-          .from('track_timeline')
-          .select('*')
-          .in('track_id', trackIds)
-      ])
-
-      if (eventsResult.error) {
-        console.error('Error fetching track events:', eventsResult.error)
-        throw new Error(`Failed to fetch track events: ${eventsResult.error.message}`)
-      }
+      const timelineResult = await supabase
+        .from('track_timeline')
+        .select('*')
+        .in('track_id', trackIds)
 
       if (timelineResult.error) {
         console.error('Error fetching track timeline:', timelineResult.error)
         throw new Error(`Failed to fetch track timeline: ${timelineResult.error.message}`)
       }
 
-      const events = eventsResult.data || []
       const timeline = timelineResult.data || []
 
       // Process tracks and build complete track objects
       const completeTracks: CompleteTrack[] = tracks.map(track => {
-        const trackEvents = events.filter(event => event.track_id === track.id)
         const trackTimeline = timeline.filter(tl => tl.track_id === track.id)
 
-        // Separate events by type
-        const kicks = trackEvents
-          .filter(event => event.event_type === 'kick')
-          .map(event => event.timestamp)
-          .sort((a, b) => a - b)
-
-        const snares = trackEvents
-          .filter(event => event.event_type === 'snare')
-          .map(event => event.timestamp)
-          .sort((a, b) => a - b)
-
-        const hihats = trackEvents
-          .filter(event => event.event_type === 'hihat')
-          .map(event => event.timestamp)
-          .sort((a, b) => a - b)
+        // Get kicks directly from tracks table
+        const kicks = track.kicks || []
+        const snares: number[] = [] // TODO: Add snares to tracks table if needed
+        const hihats: number[] = [] // TODO: Add hihats to tracks table if needed
 
         // Build timeline object
         const timelineObj = {
@@ -167,6 +143,7 @@ class AudioService {
           duration: track.duration,
           releaseDate: track.release_date || undefined,
           audioFilePath: track.audio_file_path || undefined,
+          kicks: kicks,
           isActive: track.is_active,
           createdAt: track.created_at,
           updatedAt: track.updated_at

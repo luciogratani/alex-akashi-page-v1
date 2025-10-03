@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 import { useTheme, ThemeType } from '../contexts/ThemeContext'
 
@@ -13,26 +13,40 @@ const themeOptions: ThemeOption[] = [
   { id: 2, name: 'Berlin (Dark)', value: 'berlin' },
   { id: 3, name: 'Acid (Green)', value: 'acid' },
   { id: 4, name: 'Furry (Pink)', value: 'furry' },
-  { id: 5, name: 'Technoroom', value: 'technoroom' }
+  { id: 5, name: 'Coastal (Blue)', value: 'coastal' }
 ]
 
-export default function Theme() {
+interface ThemeProps {
+  openMenuComponent: string | null
+  onMenuComponentChange: (componentName: string | null) => void
+}
+
+export default function Theme({ openMenuComponent, onMenuComponentChange }: ThemeProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { currentTheme, setTheme } = useTheme()
+
+  // Chiudi Theme se viene aperto un altro componente del menu
+  useEffect(() => {
+    if (isOpen && openMenuComponent !== 'theme' && openMenuComponent !== null) {
+      setIsOpen(false)
+    }
+  }, [openMenuComponent, isOpen])
 
   const handleThemeSelect = (theme: ThemeOption) => {
     
     setTheme(theme.value)
     setIsOpen(false)
+    onMenuComponentChange(null)
   }
 
   return (
-    <div className="absolute top-8 right-40 z-50 flex flex-col items-end">
+    <div className="relative flex flex-col items-end">
       {/* Theme Header - Toggle Button */}
       <button
         onClick={() => {
           
           setIsOpen(!isOpen)
+          onMenuComponentChange(isOpen ? null : 'theme')
         }}
         
         className="relative flex items-center gap-2 px-2 py-1 transition-all duration-200 group bg-transparent border-none"
@@ -59,7 +73,7 @@ export default function Theme() {
 
       {/* Dropdown - Theme Options */}
       <div 
-        className={`flex flex-col items-end gap-2 mt-2 transition-all duration-300 overflow-hidden ${
+        className={`absolute top-full right-0 flex flex-col items-end gap-2 mt-2 transition-all duration-300 overflow-hidden ${
           isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >

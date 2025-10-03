@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface LoadingScreenProps {
   onComplete: () => void
@@ -25,6 +26,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [currentMessage, setCurrentMessage] = useState('')
   const [fadeOut, setFadeOut] = useState(false)
   const loadingDuration = 3500
+  const { themeColors } = useTheme()
 
   // Update loading messages
   useEffect(() => {
@@ -84,12 +86,15 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
     return () => window.removeEventListener('keydown', handleKeyPress, true)
   }, [isComplete, onComplete])
 
-  // Listen for click anywhere when loading is complete
+  // Listen for click anywhere when loading is complete (mobile only)
   useEffect(() => {
     if (!isComplete) return
 
     const handleClick = () => {
-      handleExit()
+      // Only allow click on mobile devices
+      if (window.innerWidth <= 768) {
+        handleExit()
+      }
     }
 
     window.addEventListener('click', handleClick)
@@ -112,7 +117,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
         >
           <g id="Layer_1">
             <path 
-              fill="#CA2D2E"
+              fill={themeColors.accent}
               d="M1263.43,1415.07C1016.01,1400.47,629.29,0,629.29,0c-140.73,658.8-254.72,547.31-254.72,547.31C489.81,783.59,0,1468.6,0,1468.6c257.18,14.93,634.14,1415.07,634.14,1415.07,132.84-647.55,255.38-546.15,255.38-546.15-121.16-225.2,373.9-922.45,373.9-922.45h.01ZM627.43,2344.3c-41.13.18-104.98-237.14-131.55-295.93-18.05-39.95-8.23-86.27,25.95-116.98,34-30.55,77.87-34.82,77.87-34.82-42.11-.32-73.99-2.61-98.06-5.72-42.55-5.5-86.29-38.4-109.22-70.98-232.23-329.89,99.46-372.33,171.15-375.16l-210.64-5.66c-197.59-14.6-70.83-263.73-70.83-263.73,104.86-238.87,296.07-494,348.92-562.47,6.35-8.23,20.08-7.63,25.32,1.12,56.46,94.33,94.58,178.89,112.47,221.41,12.85,30.54,10.9,64.85-6.31,93.85-32.92,55.48-98.79,57.86-98.79,57.86,44.13,1.1,76.96,3.82,101.34,7.13,40.8,5.55,77.79,31.76,99.66,63.12,239.24,343.17-161.85,381.48-161.85,381.48l202.67,5.45c195.26,6.3,88.69,238.73,88.69,238.73-36.72,146.08-313.98,668.24-366.8,661.29h0Z"
             />
           </g>
@@ -132,7 +137,8 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
               className="font-mono text-alex-accent animate-pulse"
               style={{ fontSize: '9px' }}
             >
-              PRESS <span className="font-bold">SPACE</span> OR <span className="font-bold">CLICK</span> TO START
+              PRESS <span className="font-bold">SPACE</span> TO START
+              <br />
             </div>
           )}
         </div>

@@ -24,7 +24,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     key: '',
     year: new Date().getFullYear(),
     genre: '',
-    master_engineer: ''
+    master_engineer: '',
+    kicks: [] as number[]
   })
 
   // Load tracks from Supabase
@@ -112,7 +113,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       key: track.key,
       year: track.year,
       genre: track.genre || '',
-      master_engineer: track.master_engineer || ''
+      master_engineer: track.master_engineer || '',
+      kicks: track.kicks || []
     })
   }
 
@@ -131,6 +133,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           year: editForm.year,
           genre: editForm.genre,
           master_engineer: editForm.master_engineer || null,
+          kicks: editForm.kicks,
           updated_at: new Date().toISOString()
         })
         .eq('id', editingTrack.id)
@@ -160,8 +163,34 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       key: '',
       year: new Date().getFullYear(),
       genre: '',
-      master_engineer: ''
+      master_engineer: '',
+      kicks: []
     })
+  }
+
+  // Helper functions for kicks management
+  const addKick = () => {
+    const newKick = prompt('Enter kick timestamp (in seconds):')
+    if (newKick && !isNaN(parseFloat(newKick))) {
+      const timestamp = parseFloat(newKick)
+      setEditForm(prev => ({
+        ...prev,
+        kicks: [...prev.kicks, timestamp].sort((a, b) => a - b)
+      }))
+    }
+  }
+
+  const removeKick = (index: number) => {
+    setEditForm(prev => ({
+      ...prev,
+      kicks: prev.kicks.filter((_, i) => i !== index)
+    }))
+  }
+
+  const clearKicks = () => {
+    if (confirm('Are you sure you want to clear all kicks?')) {
+      setEditForm(prev => ({ ...prev, kicks: [] }))
+    }
   }
 
   const handleDragEnd = async (result: DropResult) => {
@@ -442,6 +471,52 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                                       />
                                     </div>
                                   </div>
+                                  
+                                  {/* Kicks Management Section */}
+                                  <div className="mt-6">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <label className="block text-alex-accent font-mono text-sm">KICKS ({editForm.kicks.length})</label>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={addKick}
+                                          className="px-3 py-1 bg-alex-accent text-alex-bg font-mono text-xs hover:opacity-80 transition-opacity"
+                                        >
+                                          ADD KICK
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={clearKicks}
+                                          className="px-3 py-1 border border-alex-accent text-alex-accent font-mono text-xs hover:bg-alex-accent hover:text-alex-bg transition-colors"
+                                        >
+                                          CLEAR ALL
+                                        </button>
+                                      </div>
+                                    </div>
+                                    
+                                    {editForm.kicks.length > 0 ? (
+                                      <div className="max-h-32 overflow-y-auto border border-alex-accent/20 p-3 bg-alex-bg">
+                                        <div className="grid grid-cols-4 gap-2 text-xs font-mono">
+                                          {editForm.kicks.map((kick, index) => (
+                                            <div key={index} className="flex items-center justify-between bg-alex-accent/10 px-2 py-1">
+                                              <span className="text-alex-accent">{kick.toFixed(3)}s</span>
+                                              <button
+                                                type="button"
+                                                onClick={() => removeKick(index)}
+                                                className="text-red-400 hover:text-red-300 ml-2"
+                                              >
+                                                ×
+                                              </button>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="border border-alex-accent/20 p-3 bg-alex-bg text-center">
+                                        <span className="text-alex-subtitle font-mono text-sm">No kicks defined</span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               ) : (
                                 // Normal Track Display
@@ -470,6 +545,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           </span>
                           <span className="text-alex-subtitle font-mono text-sm">
                             {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
+                          </span>
+                          <span className="text-alex-subtitle font-mono text-sm">
+                            {track.kicks?.length || 0} kicks
                           </span>
                         </div>
                       </div>
